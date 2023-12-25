@@ -21,7 +21,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Build Container
-      run: docker build -f ${{ env.container[0] }} -t ghcr.io/converged-computing/lammps-stream-ml:${{ env.container[1] }} .
+      run: docker build -f ${{ matrix.container[0] }} -t ghcr.io/converged-computing/lammps-stream-ml:${{ matrix.container[1] }} .
 
     - name: GHCR Login
       if: (github.event_name != 'pull_request')
@@ -33,4 +33,4 @@ jobs:
 
     - name: Deploy
       if: (github.event_name != 'pull_request')
-      run: docker push ghcr.io/converged-computing/lammps-stream-ml:${{ env.container[1] }}
+      run: docker push ghcr.io/converged-computing/lammps-stream-ml:${{ matrix.container[1] }}
