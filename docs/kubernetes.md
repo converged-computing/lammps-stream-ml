@@ -114,6 +114,26 @@ To use the defaults (range of 1 to 8 for x,y,z and 20 iterations with 1 node and
 ```bash
 singularity exec lammps-stream-ml_lammps.sif python3 /code/2-train-lammps.py
 ```
+```console
+...
+🎄️ Running iteration 2
+/usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 3 y 3 z 7 -log /tmp/lammps.log -in in.reaxc.hns -nocite
+  Training confused-underoos with {'x': 3, 'y': 3, 'z': 7} to predict 20
+  Training doopy-platanos with {'x': 3, 'y': 3, 'z': 7} to predict 20
+  Training expressive-cupcake with {'x': 3, 'y': 3, 'z': 7} to predict 20
+
+🎄️ Running iteration 3
+/usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 8 y 6 z 4 -log /tmp/lammps.log -in in.reaxc.hns -nocite
+  Training confused-underoos with {'x': 6, 'y': 6, 'z': 4} to predict 51
+  Training doopy-platanos with {'x': 6, 'y': 6, 'z': 4} to predict 51
+  Training expressive-cupcake with {'x': 6, 'y': 6, 'z': 4} to predict 51
+
+🎄️ Running iteration 4
+/usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 4 y 4 z 4 -log /tmp/lammps.log -in in.reaxc.hns -nocite
+  Training confused-underoos with {'x': 4, 'y': 4, 'z': 4} to predict 26
+  Training doopy-platanos with {'x': 4, 'y': 4, 'z': 4} to predict 26
+  Training expressive-cupcake with {'x': 4, 'y': 4, 'z': 4} to predict 26
+```
 
 This will run your lammps to generate training data, and send it to the server, training each (of three) models.
 
