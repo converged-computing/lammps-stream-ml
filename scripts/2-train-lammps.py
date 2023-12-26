@@ -29,6 +29,7 @@ def get_parser():
     )
     parser.add_argument(
         "--in",
+        dest="inputs",
         default="in.reaxc.hns -nocite",
         help="Input and parameters for lammps",
     )

@@ -115,7 +115,6 @@ To use the defaults (range of 1 to 8 for x,y,z and 20 iterations with 1 node and
 singularity exec lammps-stream-ml_lammps.sif python3 /code/2-train-lammps.py
 ```
 ```console
-...
 🎄️ Running iteration 2
 /usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 3 y 3 z 7 -log /tmp/lammps.log -in in.reaxc.hns -nocite
   Training confused-underoos with {'x': 3, 'y': 3, 'z': 7} to predict 20
@@ -135,6 +134,7 @@ singularity exec lammps-stream-ml_lammps.sif python3 /code/2-train-lammps.py
   Training expressive-cupcake with {'x': 4, 'y': 4, 'z': 4} to predict 26
 ```
 
+I wrote this on Christmas, so yeah, Christmas trees <3.
 This will run your lammps to generate training data, and send it to the server, training each (of three) models.
 
 
@@ -145,10 +145,51 @@ Now let's generate more data, but this time, compare the actual time with each m
 ```bash
 singularity exec lammps-stream-ml_lammps.sif python3 /code/3-predict-lammps.py
 ```
+```console
+🧪️ Running iteration 0
+/usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 5 y 5 z 7 -log /tmp/lammps.log -in in.reaxc.hns -nocite
+  Predicted value for confused-underoos with {'x': 5, 'y': 5, 'z': 7} is 29.434425573805264
+  Predicted value for doopy-platanos with {'x': 5, 'y': 5, 'z': 7} is 45.12076412968298
+  Predicted value for expressive-cupcake with {'x': 5, 'y': 5, 'z': 7} is 23.273189928153677
 
-And then you'll run lammps for some number of iterations (defaults to 20) and calculate an accuracy for each model.
-Note that there are a lot of metrics you can see [here](https://riverml.xyz/latest/api/metrics/Accuracy/).
-The server itself also stores basic metrics, but we are doing this manually so it's a hold out test set.
+🧪️ Running iteration 1
+/usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 6 y 3 z 3 -log /tmp/lammps.log -in in.reaxc.hns -nocite
+  Predicted value for confused-underoos with {'x': 3, 'y': 3, 'z': 3} is 14.937652338729954
+  Predicted value for doopy-platanos with {'x': 3, 'y': 3, 'z': 3} is 24.11752143485609
+  Predicted value for expressive-cupcake with {'x': 3, 'y': 3, 'z': 3} is 20.551130455244824
+
+🧪️ Running iteration 2
+/usr/bin/mpirun -N 1 --ppn 4 /usr/bin/lmp -v x 1 y 5 z 8 -log /tmp/lammps.log -in in.reaxc.hns -nocite
+  Predicted value for confused-underoos with {'x': 5, 'y': 5, 'z': 8} is 31.7035947450996
+  Predicted value for doopy-platanos with {'x': 5, 'y': 5, 'z': 8} is 47.583211665477734
+  Predicted value for expressive-cupcake with {'x': 5, 'y': 5, 'z': 8} is 23.48086378670319
+```
+
+And then you'll run lammps for some number of iterations (defaults to 20) and calculate an metrics for each model.
+Note that there are a lot of metrics you can see [here](https://riverml.xyz/latest/api/metrics/Accuracy/) (that's just a link to the first). The server itself also stores basic metrics, but we are doing this manually so it's a hold out test set.
+Yes, these are quite bad, but it was only 20x for runs.
+
+```console
+⭐️ Performance for: confused-underoos
+          R Squared Error: -0.3754428092605011
+       Mean Squared Error: 211.76317491374675
+      Mean Absolute Error: 12.15553921176494
+  Root Mean Squared Error: 14.55208489920763
+
+⭐️ Performance for: doopy-platanos
+          R Squared Error: -2.1591108103954655
+       Mean Squared Error: 486.3767003684858
+      Mean Absolute Error: 19.646310895303525
+  Root Mean Squared Error: 22.05394976797775
+
+⭐️ Performance for: expressive-cupcake
+          R Squared Error: -0.06854277833132616
+       Mean Squared Error: 164.5128461518909
+      Mean Absolute Error: 11.27571565875684
+  Root Mean Squared Error: 12.826256123744407
+```
+
+Negative R squared, lol. 😬️
 
 ## Clean Up
 
