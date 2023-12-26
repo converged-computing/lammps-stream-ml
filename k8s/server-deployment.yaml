@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-server
+spec:
+  selector:
+    matchLabels:
+      run: ml-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: ml-service
+    spec:
+      containers:
+      - name: ml-service
+        image: ghcr.io/converged-computing/lammps-stream-ml:test-server
+        # These should be secrets, but OK to test
+        # I'm putting them here so you know they exist
+        env:
+          - name: SHELVE_SECRET_KEY
+            value: noodles
+          - name: JWT_SECRET_KEY
+            value: noodles
+          - name: SECRET_KEY
+            value: "qbg(sz#n+4ji)(16xrn!gti%^ig#a5ni!sxg18nv7sv*n#h*7%"
+        ports:
+        - containerPort: 8080
+        - containerPort: 80

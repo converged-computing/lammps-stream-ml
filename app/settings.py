@@ -16,12 +16,12 @@ DJANGO_RIVER_ML = {
     "APP_DIR": BASE_DIR,
     "DISABLE_AUTHENTICATION": True,
     # Shelve and jwt keys (will be generated if not found)
-    "SHELVE_SECRET_KEY": "pancakes",
-    "JWT_SECRET_KEY": "pancakes",
+    "SHELVE_SECRET_KEY": os.environ.get('SHELVE_SECRET_KEY') or 'pancakes',
+    "JWT_SECRET_KEY": os.environ.get('JWT_SECRET_KEY') or 'pancakes',
 }
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "@=n*^a0q4($45&jl5x+8_f_1yt5w+brp^&r5tk@5_yt-4=h27f"
+SECRET_KEY = os.environ.get('SECRET_KEY') or "@=n*^a0q4($45&jl5x+8_f_1yt5w+brp^&r5tk@5_yt-4=h27f"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
