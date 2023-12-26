@@ -15,7 +15,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        container: [["Dockerfile.client", "client"], ["Dockerfile", "server"]]
+        container: [["Dockerfile.client", "client"], ["Dockerfile", "server"], ["Dockerfile.lammps", "lammps"]]
 
     steps:
     - name: Checkout
