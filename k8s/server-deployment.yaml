@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: ml-service
-        image: ghcr.io/converged-computing/lammps-stream-ml:test-server
+        image: ghcr.io/converged-computing/lammps-stream-ml:server
         # These should be secrets, but OK to test
         # I'm putting them here so you know they exist
         env:

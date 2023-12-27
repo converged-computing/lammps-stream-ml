@@ -53,18 +53,51 @@ def get_parser():
         default=4,
         type=int,
     )
+
+    # Mins and maxes for each parameter - I decided to allow up to 32, 16, 16 for testing.
     parser.add_argument(
-        "--min",
-        help="min dimension for x,y,z",
+        "--x-min",
+        dest="x_min",
+        help="min dimension for x",
         default=1,
         type=int,
     )
     parser.add_argument(
-        "--max",
-        help="max dimension for x,y,z",
-        default=8,
+        "--x-max",
+        dest="x_max",
+        help="max dimension for x",
+        default=32,
         type=int,
     )
+    parser.add_argument(
+        "--y-min",
+        dest="y_min",
+        help="min dimension for y",
+        default=1,
+        type=int,
+    )
+    parser.add_argument(
+        "--y-max",
+        dest="y_max",
+        help="max dimension for y",
+        default=16,
+        type=int,
+    )
+    parser.add_argument(
+        "--z-min",
+        dest="z_min",
+        help="min dimension for z",
+        default=1,
+        type=int,
+    )
+    parser.add_argument(
+        "--z-max",
+        dest="z_max",
+        help="max dimension for z",
+        default=16,
+        type=int,
+    )
+
     parser.add_argument(
         "--iters",
         help="iterations to run of lammps",
@@ -75,12 +108,19 @@ def get_parser():
 
 
 def validate(args):
-    if args.min < 1:
-        sys.exit("Min value must be greater than or equal to 1")
-    if args.min >= args.max:
-        sys.exit("Max value must be greater than or equal to min")
-    if args.max < 1:
-        sys.exit("Max also needs to be positive >1. Also, we should never get here.")
+    for dim, min_value, max_value in [
+        ["x", args.x_min, args.x_max],
+        ["y", args.y_min, args.y_max],
+        ["z", args.z_min, args.z_max],
+    ]:
+        if min_value < 1:
+            sys.exit(f"Min value for {dim} must be greater than or equal to 1")
+        if min_value >= max_value:
+            sys.exit(f"Max value for {dim} must be greater than or equal to min")
+        if max_value < 1:
+            sys.exit(
+                f"Max for {dim} also needs to be positive >1. Also, we should never get here."
+            )
 
 
 def parse_time(line):
@@ -117,9 +157,10 @@ def main():
     # Sanity check values
     validate(args)
 
-    # Choose ranges to allow for each of x, y, and z. My computer is 32 cores so shouldn't go too big ;)
-    # We are going to be lazy and just generate the ranges and choose randomly from them
-    choices = list(range(args.min, args.max + 1))
+    # Choose ranges to allow for each of x, y, and z.
+    x_choices = list(range(args.x_min, args.x_max + 1))
+    y_choices = list(range(args.y_min, args.y_max + 1))
+    z_choices = list(range(args.z_min, args.z_max + 1))
 
     # https://riverml.xyz/latest/api/metrics/Accuracy/
     # Keep a listing actual and predictions (predictions namespaced by model)
@@ -127,10 +168,10 @@ def main():
     y_pred = {}
 
     for i in range(args.iters):
-        print(f"\n🧪️ Running iteration {i}")
-        x = random.choice(choices)
-        y = random.choice(choices)
-        z = random.choice(choices)
+        x = random.choice(x_choices)
+        y = random.choice(y_choices)
+        z = random.choice(z_choices)
+        print(f"\n🎄️ Running iteration {i} with chosen x: {x} y: {y} z: {z}")
 
         cmd = [
             mpirun,

@@ -255,3 +255,11 @@ There are ways to save an identifier and add a label later if we want.
 
 This is going to be cool! I literally just got this idea falling asleep and jumped up to prototype this quick thing, and today I've made progress. This is so simple it just might work!
 
+## 1. Client
+
+I ultimately packaged the client and lammps in the same singularity container, the idea being that a flux job is going to run lammps (in the container) and then submit the result (x,y,z chosen and time) to the server. To build:
+
+```bash
+docker build -f Dockerfile.lammps -t ghcr.io/converged-computing/lammps-stream-ml:lammps .
+```
+
