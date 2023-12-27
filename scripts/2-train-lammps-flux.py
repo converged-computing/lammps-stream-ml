@@ -239,10 +239,6 @@ def main():
 
             seconds = parse_time(line)
             print(f"Lammps run took {seconds} seconds")
-            print("TODO add command to submit to server here")
-            import IPython
-
-            IPython.embed()
             cmd = [
                 singularity,
                 "exec",
@@ -250,13 +246,13 @@ def main():
                 "python3",
                 "/code/2-send-train-result.py",
                 "--x",
-                x,
+                str(x),
                 "--y",
-                y,
+                str(y),
                 "--z",
-                z,
+                str(z),
                 "--time",
-                seconds,
+                str(seconds),
                 args.url,
             ]
             print(" ".join(cmd))
@@ -264,9 +260,6 @@ def main():
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             output, errors = p.communicate()
-            print(output)
-            print(errors)
-            continue
 
         print(output)
         print(errors)
