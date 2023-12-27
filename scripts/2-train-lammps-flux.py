@@ -187,7 +187,8 @@ def main():
         print(f"\n🎄️ Running iteration {i} with chosen x: {x} y: {y} z: {z}")
 
         # flux run -N 6 --ntasks 48 -c 1 -o cpu-affinity=per-task singularity exec --pwd /opt/lammps/examples/reaxff/HNS $container /usr/bin/lmp -v x 32 -v y 8 -v z 16 -in in.reaxc.hns
-        cmd = [
+        # Separate into flux command and singularity command for printing
+        flux_cmd = [
             flux,
             args.flux_cmd,
             "-N",
@@ -199,6 +200,8 @@ def main():
             "1",
             "-o",
             "cpu-affinity=per-task",
+        ]
+        singularity_cmd = [
             singularity,
             "exec",
             "--pwd",
@@ -218,7 +221,9 @@ def main():
             "-in",
         ] + inputs
 
-        print("   command => " + " ".join(cmd))
+        print("         flux => " + " ".join(flux_cmd))
+        print("  singularity => " + " ".join(singularity_cmd))
+        cmd = flux_cmd + singularity_cmd
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
@@ -239,7 +244,7 @@ def main():
                 continue
 
             seconds = parse_time(line)
-            print(f"    result => Lammps run took {seconds} seconds")
+            print(f"       result => Lammps run took {seconds} seconds")
             cmd = [
                 singularity,
                 "exec",
@@ -256,7 +261,7 @@ def main():
                 str(seconds),
                 args.url,
             ]
-            print("   command => " + " ".join(cmd))
+            print("      command => " + " ".join(cmd))
             p = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
