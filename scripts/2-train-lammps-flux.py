@@ -79,7 +79,8 @@ def get_parser():
         type=int,
     )
 
-    # Mins and maxes for each parameter - I decided to allow up to 32, 16, 16 for testing.
+    # Mins and maxes for each parameter - I decided to allow up to 32, 32, 32 for testing.
+    # On the cluster with cpu affinity set this is 4 minutes 41 seconds
     parser.add_argument(
         "--x-min",
         dest="x_min",
@@ -105,7 +106,7 @@ def get_parser():
         "--y-max",
         dest="y_max",
         help="max dimension for y",
-        default=16,
+        default=32,
         type=int,
     )
     parser.add_argument(
@@ -119,7 +120,7 @@ def get_parser():
         "--z-max",
         dest="z_max",
         help="max dimension for z",
-        default=16,
+        default=32,
         type=int,
     )
     parser.add_argument(
@@ -217,7 +218,7 @@ def main():
             "-in",
         ] + inputs
 
-        print(" ".join(cmd))
+        print("   command => " + " ".join(cmd))
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
@@ -238,7 +239,7 @@ def main():
                 continue
 
             seconds = parse_time(line)
-            print(f"Lammps run took {seconds} seconds")
+            print(f"    result => Lammps run took {seconds} seconds")
             cmd = [
                 singularity,
                 "exec",
@@ -255,14 +256,15 @@ def main():
                 str(seconds),
                 args.url,
             ]
-            print(" ".join(cmd))
+            print("   command => " + " ".join(cmd))
             p = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             output, errors = p.communicate()
 
         print(output)
-        print(errors)
+        if errors:
+            print(errors)
 
 
 if __name__ == "__main__":
