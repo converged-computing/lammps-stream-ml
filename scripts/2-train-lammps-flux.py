@@ -5,19 +5,32 @@
 # on my local machine) and use the matrix data for training the models it
 # discovers.
 
+# This script is run a bit differently - it is expected to be run on the host, and then
+# interacts with the container to run lammps, get the result, and then submit the result
+# to the machine learning server (using the same container). So we have taken 2-train-lammps.py
+# and split into two scripts (still in one container) to account for being on the host.
+
+# I had to split them apart because:
+# 1. This script needs to CALL the container, and have access to flux on the host
+# 2. This script (on the host) cannot expect to have river installed
+
+# Usage to run on cluster (step 1)
+# python3 /home/flux/lammps-ml/2-train-lammps-flux.py --container $container
+
+
+# flux run -N 6 --ntasks 48 -c 1 -o cpu-affinity=per-task singularity exec --pwd /opt/lammps/examples/reaxff/HNS $container python3 /code/2-train-lammps.py --x-min 1 --x-max 32 --y-min 1 --y-max 8 --z-min 1 --z-max 8 --iters 1 --np 48 --nodes 6 http://u2204-04:8080/
+
+
 import argparse
-import os
 import random
 import shutil
 import subprocess
 import sys
 
-from riverapi.main import Client
-
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="LAMMPS Training (Serial)",
+        description="LAMMPS Training (Flux)",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
@@ -26,10 +39,15 @@ def get_parser():
         help="URL where ml-server is deployed",
         default="http://localhost",
     )
+
     parser.add_argument(
         "--workdir",
         default="/opt/lammps/examples/reaxff/HNS",
         help="Working directory to run lammps from.",
+    )
+    parser.add_argument(
+        "--container",
+        help="Path to container to run with lammps",
     )
     parser.add_argument(
         "--in",
@@ -47,6 +65,12 @@ def get_parser():
         "--log",
         help="write log to path (keep in mind Singularity container is read only)",
         default="/tmp/lammps.log",
+    )
+    parser.add_argument(
+        "--flux-cmd",
+        dest="flux_cmd",
+        help="The flux command to use (e.g., run or submit)",
+        default="run",
     )
     parser.add_argument(
         "--np",
@@ -98,7 +122,6 @@ def get_parser():
         default=16,
         type=int,
     )
-
     parser.add_argument(
         "--iters",
         help="iterations to run of lammps",
@@ -136,24 +159,17 @@ def main():
     # If an error occurs while parsing the arguments, the interpreter will exit with value 2
     args, _ = parser.parse_known_args()
 
-    print(f"Preparing to run lammps and train models at  {args.url}")
+    print(f"Preparing to run lammps and train models with {args.container}")
 
-    # We need to be in this PWD with the experiment data
-    # Yes, this assumes running in the container
-    os.chdir(args.workdir)
+    # Find the software we need, flux and singularity
+    flux = shutil.which("flux")
+    singularity = shutil.which("singularity")
 
-    # Find the software we need
-    mpirun = shutil.which("mpirun")
-    lmp = shutil.which("lmp")
-
-    if not mpirun or not lmp:
-        sys.exit("Cannot find lmp or mpirun executable.")
+    if not flux or not singularity:
+        sys.exit("Cannot find flux or singularity executable.")
 
     # Input files
     inputs = args.inputs.split(" ")
-
-    # Connect to the server running here
-    cli = Client(args.url)
 
     # Sanity check values
     validate(args)
@@ -169,13 +185,26 @@ def main():
         z = random.choice(z_choices)
         print(f"\n🎄️ Running iteration {i} with chosen x: {x} y: {y} z: {z}")
 
+        # flux run -N 6 --ntasks 48 -c 1 -o cpu-affinity=per-task singularity exec --pwd /opt/lammps/examples/reaxff/HNS $container /usr/bin/lmp -v x 32 -v y 8 -v z 16 -in in.reaxc.hns
         cmd = [
-            mpirun,
+            flux,
+            args.flux_cmd,
             "-N",
             str(args.nodes),
-            "--ppn",
+            "--ntasks",
             str(args.np),
-            lmp,
+            # These aren't exposed as options because we pretty much always want them
+            "-c",
+            "1",
+            "-o",
+            "cpu-affinity=per-task",
+            singularity,
+            "exec",
+            "--pwd",
+            args.workdir,
+            args.container,
+            # This is where lammps is installed in the container, this should not change
+            "/usr/bin/lmp",
             "-v",
             "x",
             str(x),
@@ -187,28 +216,60 @@ def main():
             args.log,
             "-in",
         ] + inputs
+
         print(" ".join(cmd))
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
 
-        # This will hang until it's done
+        # This will hang until it's done, either submit or run
         # We could save the log here, but I'm just going to grab the time
         output, errors = p.communicate()
         line = [x for x in output.split("\n") if x][-1]
-        if "total wall time" not in line.lower():
-            print(f"Warning, there was an issue with iteration {i}")
+
+        # Note this is currently written to run experiments, meaning we use all resources available
+        # for each run, and can just wait for the run and parse output. If you want to use flux submit,
+        # you can instead write each to a log file, read the log file, and parse the same.
+        if args.flux_cmd == "run":
+            if "total wall time" not in line.lower():
+                print(f"Warning, there was an issue with iteration {i}")
+                print(output)
+                print(errors)
+                continue
+
+            seconds = parse_time(line)
+            print(f"Lammps run took {seconds} seconds")
+            print("TODO add command to submit to server here")
+            import IPython
+
+            IPython.embed()
+            cmd = [
+                singularity,
+                "exec",
+                args.container,
+                "python3",
+                "/code/2-send-train-result.py",
+                "--x",
+                x,
+                "--y",
+                y,
+                "--z",
+                z,
+                "--time",
+                seconds,
+                args.url,
+            ]
+            print(" ".join(cmd))
+            p = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            output, errors = p.communicate()
             print(output)
             print(errors)
             continue
-        seconds = parse_time(line)
 
-        # Send this to the server to train each model
-        train_x = {"x": x, "y": y, "z": z}
-        train_y = seconds
-        for model_name in cli.models()["models"]:
-            print(f"  Training {model_name} with {train_x} to predict {train_y}")
-            cli.learn(model_name, x=train_x, y=train_y)
+        print(output)
+        print(errors)
 
 
 if __name__ == "__main__":
