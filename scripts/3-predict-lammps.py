@@ -3,14 +3,15 @@
 # After we've trained the models, run this script to run lammps again, and generate
 # a testing set to generate predictions for. See how well we did.
 
-from riverapi.main import Client
-from river import metrics
 import argparse
-import shutil
-import random
-import subprocess
 import os
+import random
+import shutil
+import subprocess
 import sys
+
+from river import metrics
+from riverapi.main import Client
 
 
 def get_parser():
@@ -168,6 +169,7 @@ def main():
         # Add to accuracy vector
         y_true.append(seconds)
         test_x = {"x": y, "y": y, "z": z}
+        print(f"  Actual value is {seconds}")
         for model_name in cli.models()["models"]:
             pred = cli.predict(model_name, x=test_x)["prediction"]
             print(f"  Predicted value for {model_name} with {test_x} is {pred}")

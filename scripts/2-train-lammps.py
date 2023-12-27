@@ -5,13 +5,14 @@
 # on my local machine) and use the matrix data for training the models it
 # discovers.
 
-from riverapi.main import Client
 import argparse
-import shutil
-import random
-import subprocess
 import os
+import random
+import shutil
+import subprocess
 import sys
+
+from riverapi.main import Client
 
 
 def get_parser():
@@ -20,7 +21,10 @@ def get_parser():
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "url", nargs="?", help="URL where ml-server is deployed", default="localhost"
+        "url",
+        nargs="?",
+        help="URL where ml-server is deployed",
+        default="http://localhost",
     )
     parser.add_argument(
         "--workdir",

@@ -3,11 +3,10 @@
 # This can be run from inside a client (or the lammps container)
 # that has river and the client installed.
 
-from river import linear_model
-from river import preprocessing
-
-from riverapi.main import Client
 import sys
+
+from river import linear_model, preprocessing
+from riverapi.main import Client
 
 url = "http://localhost"
 if len(sys.argv) > 1:
