@@ -168,6 +168,7 @@ def main():
         # Add to accuracy vector
         y_true.append(seconds)
         test_x = {"x": y, "y": y, "z": z}
+        print(f"  Actual value is {seconds}")
         for model_name in cli.models()["models"]:
             pred = cli.predict(model_name, x=test_x)["prediction"]
             print(f"  Predicted value for {model_name} with {test_x} is {pred}")

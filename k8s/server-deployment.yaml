@@ -24,6 +24,10 @@ spec:
             value: noodles
           - name: SECRET_KEY
             value: "qbg(sz#n+4ji)(16xrn!gti%^ig#a5ni!sxg18nv7sv*n#h*7%"
+        # EXTREMELY IMPORTANT: we need to set the host port so it's mapped to the
+        # same as usernetes
         ports:
         - containerPort: 8080
+          hostPort: 8080
         - containerPort: 80
+          hostPort: 80

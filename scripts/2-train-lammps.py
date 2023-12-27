@@ -20,7 +20,10 @@ def get_parser():
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "url", nargs="?", help="URL where ml-server is deployed", default="localhost"
+        "url",
+        nargs="?",
+        help="URL where ml-server is deployed",
+        default="http://localhost",
     )
     parser.add_argument(
         "--workdir",

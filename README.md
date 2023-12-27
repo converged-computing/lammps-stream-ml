@@ -17,7 +17,8 @@ At this point we will have an ML server that can serve predictions for a model. 
 
  - [Building Containers](docs/containers.md): the first prototype to see if the idea had feet, running a server and having a client create models, train, and predict using it.
  - [Kubernetes](docs/kubernetes.md): deploying the ml-server to kubernetes and running actual lammps alongside it, in a Singularity container, training and testing and calculating accuracy for three models.
- 
+ - [Usernetes](docs/usernetes.md): the same, but move into usernetes with flux.
+
 ### TODO
 
 These are next steps I want to do, after I have the automated builds.
