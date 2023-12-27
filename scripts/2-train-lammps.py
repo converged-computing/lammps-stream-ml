@@ -5,13 +5,14 @@
 # on my local machine) and use the matrix data for training the models it
 # discovers.
 
-from riverapi.main import Client
 import argparse
-import shutil
-import random
-import subprocess
 import os
+import random
+import shutil
+import subprocess
 import sys
+
+from riverapi.main import Client
 
 
 def get_parser():

@@ -3,14 +3,15 @@
 # After we've trained the models, run this script to run lammps again, and generate
 # a testing set to generate predictions for. See how well we did.
 
-from riverapi.main import Client
-from river import metrics
 import argparse
-import shutil
-import random
-import subprocess
 import os
+import random
+import shutil
+import subprocess
 import sys
+
+from river import metrics
+from riverapi.main import Client
 
 
 def get_parser():

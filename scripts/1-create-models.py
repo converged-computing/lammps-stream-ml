@@ -3,12 +3,10 @@
 # This can be run from inside a client (or the lammps container)
 # that has river and the client installed.
 
-from river import neighbors
-from river import linear_model
-from river import preprocessing
-
-from riverapi.main import Client
 import sys
+
+from river import linear_model, preprocessing
+from riverapi.main import Client
 
 url = "http://localhost"
 if len(sys.argv) > 1:
@@ -23,9 +21,6 @@ cli = Client(url)
 regression_model = preprocessing.StandardScaler() | linear_model.LinearRegression(
     intercept_lr=0.1
 )
-
-# Try knn and kmeans, why not
-knn_model = neighbors.KNNRegressor()
 
 # That's kind of cool, although I'm not sure I like PA people, not sure how I feel about ML models :)
 # https://www.geeksforgeeks.org/passive-aggressive-classifiers/
