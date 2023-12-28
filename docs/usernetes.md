@@ -420,7 +420,7 @@ with open('post-train-models.json', 'w') as fd:
     fd.write(json.dumps(results, indent=3))
 ```
 
-To save on fog -> quartz:
+To save from your cluster to local:
 
 ```bash
 mkdir -p lammps-ml
@@ -430,7 +430,7 @@ scp -r root@u2204-01:/home/flux/lammps-ml/results/* .
 # then on quartz
 mkdir -p lammps-ml
 cd lammps-ml
-scp -r sochat1@fog:/home/sochat1/lammps-ml/* .
+scp -r sochat1@star-trek-cluster:/home/sochat1/lammps-ml/* .
 
 # and then to your local machine
 ```
