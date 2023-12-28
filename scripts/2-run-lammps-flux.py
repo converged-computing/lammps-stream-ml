@@ -13,6 +13,7 @@ import argparse
 import random
 import shutil
 import subprocess
+import json
 import sys
 
 from riverapi.main import Client
@@ -31,12 +32,6 @@ def get_parser():
         description="LAMMPS Run (Train or Test) Flux",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument(
-        "url",
-        nargs="?",
-        help="URL where ml-server is deployed",
-        default="http://localhost",
-    )
     subparsers = parser.add_subparsers(
         help="actions",
         title="actions",
@@ -52,6 +47,11 @@ def get_parser():
     )
 
     for command in [train, test]:
+        command.add_argument(
+            "--url",
+            help="URL where ml-server is deployed",
+            default="http://localhost",
+        )
         command.add_argument(
             "--workdir",
             default="/opt/lammps/examples/reaxff/HNS",
@@ -268,7 +268,8 @@ def submit_train_result(cli, args, x, y, z, seconds):
     for model_name in cli.models()["models"]:
         print(f"  Training {model_name} with {train_x} to predict {seconds}")
         res = cli.learn(model_name, x=train_x, y=seconds)
-        print(res)
+        if "successful learn" not in res.lower():
+            print(f"Issue with learn: {res}")
 
 
 def show_metrics(cli, y_true, y_pred):
@@ -321,6 +322,10 @@ def main():
 
     # Connect to the server running here
     cli = Client(args.url)
+
+    # Do a test to the client
+    res = cli.info()
+    print(json.dumps(res, indent=4))
 
     # If we are predicting, we will save true / predicted values
     # https://riverml.xyz/latest/api/metrics/Accuracy/
