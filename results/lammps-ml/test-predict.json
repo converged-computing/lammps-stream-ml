@@ -1,0 +1,170 @@
+{
+    "loopy-fudge": {
+        "r_squared": -7.758036982368445,
+        "mean_squared_error": 422.3320055942117,
+        "mean_absolute_error": 17.431258818922913,
+        "root_mean_squared_error": 20.550717885130233,
+        "stats": {
+            "predict": {
+                "n_calls": 19,
+                "mean_duration": 916103,
+                "mean_duration_human": "916\u03bcs103ns",
+                "ewm_duration": 1026578,
+                "ewm_duration_human": "1ms26\u03bcs578ns"
+            },
+            "learn": {
+                "n_calls": 1000,
+                "mean_duration": 1106506,
+                "mean_duration_human": "1ms106\u03bcs506ns",
+                "ewm_duration": 1056509,
+                "ewm_duration_human": "1ms56\u03bcs509ns"
+            }
+        },
+        "metrics": {
+            "MAE": 19.5020937143509,
+            "RMSE": 25.526023801568684,
+            "SMAPE": 46.54948092146236
+        },
+        "model": {
+            "alpha": 1,
+            "beta": 1,
+            "smoothing": null
+        },
+        "model_name": "loopy-fudge"
+    },
+    "sticky-frito": {
+        "r_squared": -30.226564797256913,
+        "mean_squared_error": 1505.8143468899443,
+        "mean_absolute_error": 30.46342826057467,
+        "root_mean_squared_error": 38.804823758006485,
+        "stats": {
+            "predict": {
+                "n_calls": 19,
+                "mean_duration": 739979,
+                "mean_duration_human": "739\u03bcs979ns",
+                "ewm_duration": 759644,
+                "ewm_duration_human": "759\u03bcs644ns"
+            },
+            "learn": {
+                "n_calls": 1000,
+                "mean_duration": 950546,
+                "mean_duration_human": "950\u03bcs546ns",
+                "ewm_duration": 950974,
+                "ewm_duration_human": "950\u03bcs974ns"
+            }
+        },
+        "metrics": {
+            "MAE": 14.972651799753834,
+            "RMSE": 20.534300987980227,
+            "SMAPE": 48.751810909867444
+        },
+        "model": {
+            "StandardScaler": {
+                "with_std": true
+            },
+            "LinearRegression": {
+                "optimizer": [
+                    "SGD",
+                    {
+                        "lr": [
+                            "Constant",
+                            {
+                                "learning_rate": 0.01
+                            }
+                        ]
+                    }
+                ],
+                "loss": [
+                    "Squared"
+                ],
+                "l2": 0.0,
+                "l1": 0.0,
+                "intercept_init": 0.0,
+                "intercept_lr": [
+                    "Constant",
+                    {
+                        "learning_rate": 0.1
+                    }
+                ],
+                "clip_gradient": 1000000000000.0,
+                "initializer": [
+                    "Zeros"
+                ]
+            }
+        },
+        "model_name": "sticky-frito"
+    },
+    "swampy-cherry": {
+        "r_squared": -0.9140239030623201,
+        "mean_squared_error": 92.29848599211631,
+        "mean_absolute_error": 9.35882942087711,
+        "root_mean_squared_error": 9.607210104505695,
+        "stats": {
+            "predict": {
+                "n_calls": 19,
+                "mean_duration": 638355,
+                "mean_duration_human": "638\u03bcs355ns",
+                "ewm_duration": 631128,
+                "ewm_duration_human": "631\u03bcs128ns"
+            },
+            "learn": {
+                "n_calls": 1000,
+                "mean_duration": 865584,
+                "mean_duration_human": "865\u03bcs584ns",
+                "ewm_duration": 843268,
+                "ewm_duration_human": "843\u03bcs268ns"
+            }
+        },
+        "metrics": {
+            "MAE": 41.54347527206666,
+            "RMSE": 57.9060613839927,
+            "SMAPE": 70.14105605934155
+        },
+        "model": {
+            "C": 0.01,
+            "mode": 2,
+            "eps": 0.1,
+            "learn_intercept": false
+        },
+        "model_name": "swampy-cherry"
+    },
+    "dims": [
+        {
+            "x": 1,
+            "y": 2,
+            "z": 1
+        },
+        {
+            "x": 26,
+            "y": 1,
+            "z": 16
+        },
+        {
+            "x": 9,
+            "y": 7,
+            "z": 6
+        }
+    ],
+    "y_pred": {
+        "loopy-fudge": [
+            9.611607279551077,
+            65.80694680940886,
+            45.09843692691096
+        ],
+        "sticky-frito": [
+            -42.309965893416,
+            57.837700842670586,
+            40.242618045637414
+        ],
+        "swampy-cherry": [
+            7.572884337463722,
+            25.24887625153829,
+            28.10175114836666
+        ]
+    },
+    "y_true": [
+        20,
+        33,
+        36
+    ]
+}

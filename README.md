@@ -19,9 +19,25 @@ At this point we will have an ML server that can serve predictions for a model. 
  - [Kubernetes](docs/kubernetes.md): deploying the ml-server to kubernetes and running actual lammps alongside it, in a Singularity container, training and testing and calculating accuracy for three models.
  - [Usernetes](docs/usernetes.md): the same, but move into usernetes with flux.
 
-### TODO
+## Results
 
-These are next steps I want to do, after I have the automated builds.
+The prototype results are in! The entire method worked really nicely on Usernetes + bare metal (e.g., Flux on VMs) and although I didn't take much time into the ML bit, we have some fun plots that demonstrate different kinds of regression to predict LAMMPS runtime from the x,y,z coordinates, trained on 1000 points for each of the following parameters:
 
-- Update submission script to use flux instead.
-- Maybe a script to consume API to get model as it is changing (and write somewhere for plotting)
+- x: between 1 and 32
+- y: between 1 and 8
+- z: between 1 and 16
+
+And then tested (on a new set run on the same cluster) of 250 points.
+
+![results/lammps-ml/loopy-fudge-pa-regression.png](results/lammps-ml/loopy-fudge-pa-regression.png)
+![results/lammps-ml/sticky-frito-linear-regression.png](results/lammps-ml/sticky-frito-linear-regression.png)
+![results/lammps-ml/swampy-cherry-bayesian-linear-regression.png](results/lammps-ml/swampy-cherry-bayesian-linear-regression.png)
+
+For someone that doesn't do ML and just casually through this together, I'm less concerned with the result, but pretty proud that I pulled the whole thing off! At a high level, this is a great demonstration of:
+
+1. Running a simulation on bare metal HPC alongside a service
+2. Sending results to the service as you go (in this case, ML training points)
+3. Using the service to get updated info about the model on demand
+4. Doing a second phase (e.g., hold out testing) with your trained model.
+
+And that's it! I think we might have done better to predict log time, but I don't want to go back and do it again. But it would actually be interesting to have this setup in a live running queue alongside a set of ensemble workloads that can generate predictions about the runtime (and schedule accordingly).

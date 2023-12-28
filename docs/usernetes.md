@@ -107,9 +107,9 @@ singularity exec lammps-stream-ml_lammps.sif python3 /code/1-create-models.py ht
 ```
 ```console
 Preparing to create models for client URL http://u2204-05:8080/
-Created model sticky-frito
-Created model loopy-fudge
-Created model swampy-cherry
+Created model sticky-frito  # linear regression
+Created model loopy-fudge   # pa regression
+Created model swampy-cherry # bayesian linear regression
 ```
 
 ### Train LAMMPS
@@ -223,14 +223,14 @@ Preparing to send LAMMPS data to http://u2204-05:8080/
 
 #### Train Runs
 
-Now we can run for more iterations.
+Now we can run for more iterations. Note that if you are afraid of your terminal quitting you can use `screen` first.
 
 ```bash
 container=/home/flux/lammps-ml/lammps-stream-ml_lammps.sif
 python3 2-run-lammps-flux.py train --container $container --np 48 --nodes 6 --workdir /opt/lammps/examples/reaxff/HNS --x-min 1 --x-max 32 --y-min 1 --y-max 8 --z-min 1 --z-max 16 --iters 20 --url http://u2204-05:8080/
 ```
 
-You can watch the output to see chosen parameters and output (as shown in the example). This will run your lammps to generate training data, and send it to the server, training each (of three) models.  
+You can watch the output to see chosen parameters and output (as shown in the example). This will run your lammps to generate training data, and send it to the server, training each (of three) models.  Note that I chose to (in total) do 1000 training points.
 
 
 #### Checking Intermediate Status
@@ -302,10 +302,10 @@ Let's start again wtih testing. The reason that I combined these previously two 
 
 ```bash
 container=/home/flux/lammps-ml/lammps-stream-ml_lammps.sif
-python3 2-run-lammps-flux.py predict --container $container --np 48 --nodes 6 --workdir /opt/lammps/examples/reaxff/HNS --x-min 1 --x-max 32 --y-min 1 --y-max 8 --z-min 1 --z-max 16 --iters 1 --url http://u2204-05:8080/
+python3 2-run-lammps-flux.py predict --container $container --np 48 --nodes 6 --workdir /opt/lammps/examples/reaxff/HNS --x-min 1 --x-max 32 --y-min 1 --y-max 8 --z-min 1 --z-max 16 --iters 3 --url http://u2204-05:8080/ --out test-predict.json
 ```
 
-The above is probably terrible because we only have a few runs! We need to do more.
+The above will save the actual values, predictions, metadata about models and error values calculated (metrics).
 
 <details>
 
@@ -357,9 +357,80 @@ And then the same can be done for a larger number of test cases.
 
 #### Predictions
 
-We will run something like this... results TBA.
+We can run a test with some number of iterations (new test cases of LAMMPS). Note that we add an `--out` json file to save results to. I decided to do a total of 300 test cases, to give an approximate total of 1250 cases, 80% for training (1000) and 20% for testing (250).
 
 ```bash
 container=/home/flux/lammps-ml/lammps-stream-ml_lammps.sif
-python3 2-run-lammps-flux.py predict --container $container --np 48 --nodes 6 --workdir /opt/lammps/examples/reaxff/HNS --x-min 1 --x-max 32 --y-min 1 --y-max 8 --z-min 1 --z-max 16 --iters 20 --url http://u2204-05:8080/
+python3 2-run-lammps-flux.py predict --container $container --np 48 --nodes 6 --workdir /opt/lammps/examples/reaxff/HNS --x-min 1 --x-max 32 --y-min 1 --y-max 8 --z-min 1 --z-max 16 --iters 250 --url http://u2204-05:8080/ --out lammps-predict.json
+```
+
+<details>
+
+<summary> Metrics Output for Models </summary>
+
+```console
+⭐️ Performance for: loopy-fudge
+          R Squared Error: 0.5434174125466613
+       Mean Squared Error: 523.423567982268
+      Mean Absolute Error: 18.432238817050656
+  Root Mean Squared Error: 22.87845204515087
+
+⭐️ Performance for: sticky-frito
+          R Squared Error: 0.752148321336189
+       Mean Squared Error: 284.13569317262835
+      Mean Absolute Error: 12.07890900951537
+  Root Mean Squared Error: 16.856325019784958
+
+⭐️ Performance for: swampy-cherry
+          R Squared Error: -0.5802209706988015
+       Mean Squared Error: 1811.555940617423
+      Mean Absolute Error: 32.342102775897864
+  Root Mean Squared Error: 42.562377055533716
+```
+
+</details>
+
+After you are done, you can also save the (pickled) models for later (from your control plane or index 0 of the flux instance):
+
+```bash
+mkdir -p lammps-ml/results
+cd lammps-ml/results
+```
+```python
+from riverapi.main import Client
+
+cli = Client('http://u2204-05:8080')
+
+# Download model as pickle
+for model_name in cli.models()['models']:
+    # Saves to model-name>.pkl in pwd unless you provide a second arg, dest
+    cli.download_model(model_name)
+
+# Also save metrics and stats
+import json
+results = {}
+for model_name in cli.models()['models']:
+    results[model_name] = {
+        "model": cli.get_model_json(model_name),
+        "stats": cli.stats(model_name),
+        "metrics": cli.metrics(model_name)
+    } 
+
+with open('post-train-models.json', 'w') as fd:
+    fd.write(json.dumps(results, indent=3))
+```
+
+To save on fog -> quartz:
+
+```bash
+mkdir -p lammps-ml
+cd lammps-ml
+scp -r root@u2204-01:/home/flux/lammps-ml/results/* .
+
+# then on quartz
+mkdir -p lammps-ml
+cd lammps-ml
+scp -r sochat1@fog:/home/sochat1/lammps-ml/* .
+
+# and then to your local machine
 ```

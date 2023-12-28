@@ -46,6 +46,12 @@ def get_parser():
         description="test models by making predictions and comparing to truth",
     )
 
+    # Add output file for test (actual and predictions)
+    test.add_argument(
+        "--out",
+        help="Output json to write actual and predicted values with x,y,z",
+    )
+
     for command in [train, test]:
         command.add_argument(
             "--url",
@@ -273,6 +279,11 @@ def submit_train_result(cli, args, x, y, z, seconds):
 
 
 def show_metrics(cli, y_true, y_pred):
+    """
+    Show metrics (and return simple view for each model)
+    """
+    results = {}
+
     # When we are done, calculate metrics for each
     for model_name in cli.models()["models"]:
         # Mean squared error
@@ -300,12 +311,25 @@ def show_metrics(cli, y_true, y_pred):
         print(f"      Mean Absolute Error: {mae_metric.get()}")
         print(f"  Root Mean Squared Error: {rmse_metric.get()}")
 
-        # print("  => Model:")
-        # print(cli.get_model_json(model_name))
-        # print("  => Metrics:")
-        # print(cli.metrics(model_name))
-        # print("  => Stats:")
-        # print(cli.stats(model_name))
+        results[model_name] = {
+            "r_squared": r2_metric.get(),
+            "mean_squared_error": mse_metric.get(),
+            "mean_absolute_error": mae_metric.get(),
+            "root_mean_squared_error": rmse_metric.get(),
+            "stats": cli.stats(model_name),
+            "metrics": cli.metrics(model_name),
+            "model": cli.get_model_json(model_name),
+            "model_name": model_name,
+        }
+    return results
+
+
+def write_output(filename, result):
+    """
+    Write output to json file
+    """
+    with open(filename, "w") as fd:
+        fd.write(json.dumps(result, indent=4))
 
 
 def main():
@@ -332,13 +356,16 @@ def main():
     # Keep a listing actual and predictions (predictions namespaced by model)
     y_true = []
     y_pred = {}
+    dims = []
 
     for x, y, z, seconds in run_lammps(args):
+        # If we are training, we are done here!
         if args.command == "train":
             submit_train_result(cli, args, x, y, z, seconds)
         else:
-            # Add to accuracy vector
+            # Add true value to vector, and save dimensions
             y_true.append(seconds)
+            dims.append({"x": x, "y": y, "z": z})
 
             # Make a prediction
             for model_name, pred in make_prediction(cli, args, x, y, z):
@@ -348,7 +375,10 @@ def main():
 
     # When we are finished running, if we are predicting, give final results
     if args.command == "predict":
-        show_metrics(cli, y_true, y_pred)
+        results = show_metrics(cli, y_true, y_pred)
+        if args.out is not None:
+            results.update({"dims": dims, "y_pred": y_pred, "y_true": y_true})
+            write_output(args.out, results)
 
 
 if __name__ == "__main__":
