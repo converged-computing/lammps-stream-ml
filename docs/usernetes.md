@@ -20,6 +20,12 @@ the models and run lammps.
 flux exec singularity pull --dir /home/flux/lammps-ml docker://ghcr.io/converged-computing/lammps-stream-ml:lammps
 ```
 
+While ideally we could run everything in the container, we are going to be a bit lazy and install our client on the host, and that way we don't need to write complex scripts to interact with a container multiple times.
+
+```bash
+flux exec pip3 install river riverapi
+```
+
 ### Usernetes
 
 Note that usernetes has been setup to allow unprivileged ports:
@@ -108,32 +114,10 @@ Now let's run our script that is going to (via flux submit) run lammps and send 
 
 ```bash
 # Only requires standard library
-wget https://raw.githubusercontent.com/converged-computing/lammps-stream-ml/main/scripts/2-train-lammps-flux.py
+wget https://raw.githubusercontent.com/converged-computing/lammps-stream-ml/main/scripts/2-run-lammps-flux.py
 ```
 ```console
-python3 2-train-lammps-flux.py
-LAMMPS Training (Flux)
-
-positional arguments:
-  url                   URL where ml-server is deployed
-
-options:
-  -h, --help            show this help message and exit
-  --workdir WORKDIR     Working directory to run lammps from.
-  --container CONTAINER
-                        Path to container to run with lammps
-  --in INPUTS           Input and parameters for lammps
-  --nodes NODES         number of nodes (N)
-  --log LOG             write log to path (keep in mind Singularity container is read only)
-  --flux-cmd FLUX_CMD   The flux command to use (e.g., run or submit)
-  --np NP               number of processes per node
-  --x-min X_MIN         min dimension for x
-  --x-max X_MAX         max dimension for x
-  --y-min Y_MIN         min dimension for y
-  --y-max Y_MAX         max dimension for y
-  --z-min Z_MIN         min dimension for z
-  --z-max Z_MAX         max dimension for z
-  --iters ITERS         iterations to run of lammps
+python3 2-train-lammps-flux.py --help
 ```
 
 Also if you need to clear the cache:
@@ -145,8 +129,8 @@ flux exec singularity cache clean --force
 Now let's train, allowing each parameter to range between these values (the script controls this)
 
  - x: 1 to 32
- - y: 1 to 32
- - z: 1 to 32
+ - y: 1 to 8
+ - z: 1 to 16
 
 This is a bit arbitrary based on my manual testing, but I had to cap the max runtime. with some strategy. The flux submit is also nice because I can submit a ton of jobs and then just leave them to run.
 Let's do a test run first (one iteration, and flux run so we see everything).
